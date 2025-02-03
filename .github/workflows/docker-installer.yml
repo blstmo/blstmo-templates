@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        container: [ubuntu:latest, debian:latest, centos:latest]
+        container: ['ubuntu:latest', 'debian:latest', 'centos:latest']
 
     steps:
       - name: Checkout repository
@@ -31,11 +31,10 @@ jobs:
       - name: Run Docker Installer Script in ${{ matrix.container }}
         run: |
           docker run --rm -d --name test-container ${{ matrix.container }} sleep infinity
-          docker cp https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-installer/install.sh test-container:/install.sh
+          docker cp docker-installer/install.sh test-container:/install.sh
           docker exec test-container bash -c "
-            curl -fsSL https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-installer/install.sh -o /install.sh &&
             chmod +x /install.sh &&
-            sudo /install.sh
+            /install.sh
           "
 
       - name: Verify Docker and Docker Compose in ${{ matrix.container }}
