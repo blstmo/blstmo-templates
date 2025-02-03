@@ -26,18 +26,29 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl jq docker.io
+          sudo apt-get install -y curl jq containerd docker.io
 
       - name: Run Docker Installer Script in ${{ matrix.container }}
         run: |
           docker run --rm -d --name test-container ${{ matrix.container }} sleep infinity
           docker cp docker-installer/install.sh test-container:/install.sh
           docker exec test-container bash -c "
+            if command -v apt-get &> /dev/null; then
+              apt-get update && apt-get install -y curl
+            elif command -v yum &> /dev/null; then
+              yum update -y && yum install -y curl
+            fi &&
             chmod +x /install.sh &&
-            /install.sh
+            bash /install.sh
           "
 
       - name: Verify Docker and Docker Compose in ${{ matrix.container }}
         run: |
           docker exec test-container docker --version
           docker exec test-container docker-compose --version
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop test-container || true
+          docker rm test-container || true
