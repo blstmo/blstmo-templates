@@ -9,63 +9,82 @@ on:
       - 'docker-installer/install.sh'
 
 jobs:
-  test-script:
+  test-ubuntu:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        container: ['ubuntu:latest', 'debian:latest', 'almalinux:latest']
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install dependencies
+      - name: Install basic tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl jq docker.io containerd
-
-      - name: Run Docker Installer Script in ${{ matrix.container }}
+          sudo apt-get install -y curl jq
+      - name: Run and verify installation
         run: |
-          docker run --privileged --rm -d --name test-container ${{ matrix.container }} sleep infinity
-          docker cp docker-installer/install.sh test-container:/install.sh
-          docker exec test-container bash -c "
-            if command -v apt-get &> /dev/null; then
-              apt-get update && \
-              DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                apt-utils \
-                ca-certificates \
-                curl \
-                gnupg
-            elif command -v dnf &> /dev/null; then
-              dnf -y update && \
-              dnf -y install \
-                ca-certificates \
-                curl \
-                dnf-plugins-core
-            fi && \
-            chmod +x /install.sh && \
-            bash /install.sh
-          "
+          chmod +x docker-installer/install.sh
+          sudo ./docker-installer/install.sh
+          docker --version
+          docker-compose --version
 
-      - name: Verify Docker installation in ${{ matrix.container }}
+  test-debian:
+    runs-on: debian-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install basic tools
         run: |
-          docker exec test-container bash -c '
-            if ! command -v docker &> /dev/null; then
-              echo "Docker is not installed"
-              exit 1
-            fi
-            echo "Docker version:"
-            docker --version || true
-            echo "Docker Compose version:"
-            docker-compose --version || true
-          '
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+      - name: Run and verify installation
+        run: |
+          chmod +x docker-installer/install.sh
+          sudo ./docker-installer/install.sh
+          docker --version
+          docker-compose --version
 
-      - name: Cleanup
-        if: always()
+  test-almalinux:
+    runs-on: almalinux-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install basic tools
         run: |
-          docker stop test-container || true
-          docker rm test-container || true
+          sudo dnf -y update
+          sudo dnf -y install curl jq
+      - name: Run and verify installation
+        run: |
+          chmod +x docker-installer/install.sh
+          sudo ./docker-installer/install.sh
+          docker --version
+          docker-compose --version
+
+  test-opensuse:
+    runs-on: opensuse-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install basic tools
+        run: |
+          sudo zypper refresh
+          sudo zypper install -y curl jq
+      - name: Run and verify installation
+        run: |
+          chmod +x docker-installer/install.sh
+          sudo ./docker-installer/install.sh
+          docker --version
+          docker-compose --version
+
+  test-centos:
+    runs-on: centos-stream-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install basic tools
+        run: |
+          sudo yum -y update
+          sudo yum -y install curl jq
+      - name: Run and verify installation
+        run: |
+          chmod +x docker-installer/install.sh
+          sudo ./docker-installer/install.sh
+          docker --version
+          docker-compose --version
