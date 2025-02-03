@@ -52,7 +52,7 @@ else
     log "${RED}" "Unsupported package manager. Please update your system manually."
     exit 1
 fi
-
+#Install Curl
 log "${YELLOW}" "Installing prerequisites..."
 if command -v apt-get &> /dev/null; then
     apt-get install -y curl
