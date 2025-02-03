@@ -23,7 +23,7 @@ jobs:
           chmod +x docker-installer/install.sh
           sudo ./docker-installer/install.sh
           docker --version
-          docker-compose --version
+          docker compose --version
 
   test-debian:
     runs-on: debian-latest
@@ -39,7 +39,7 @@ jobs:
           chmod +x docker-installer/install.sh
           sudo ./docker-installer/install.sh
           docker --version
-          docker-compose --version
+          docker compose --version
 
   test-almalinux:
     runs-on: almalinux-latest
@@ -55,7 +55,7 @@ jobs:
           chmod +x docker-installer/install.sh
           sudo ./docker-installer/install.sh
           docker --version
-          docker-compose --version
+          docker compose --version
 
   test-opensuse:
     runs-on: opensuse-latest
@@ -71,7 +71,7 @@ jobs:
           chmod +x docker-installer/install.sh
           sudo ./docker-installer/install.sh
           docker --version
-          docker-compose --version
+          docker compose --version
 
   test-centos:
     runs-on: centos-stream-latest
@@ -87,4 +87,4 @@ jobs:
           chmod +x docker-installer/install.sh
           sudo ./docker-installer/install.sh
           docker --version
-          docker-compose --version
+          docker compose --version

@@ -2,7 +2,7 @@
 
 set -e
 
-# Function to display messages with color
+# Function to display messages with color.
 log() {
     local color=$1
     local message=$2
