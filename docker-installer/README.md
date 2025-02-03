@@ -11,7 +11,7 @@ You can install the Docker installer script using one of the following methods:
 Run the following command to download and execute the script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-installer/install.sh -o install.sh && sudo bash install.sh
+curl -fsSL https://raw.githubusercontent.com/blstmo/blstmo-templates/refs/heads/main/docker-installer/install.sh -o install.sh && sudo bash install.sh
 ```
 
 ### 2. Using `wget`
@@ -19,7 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-inst
 If you prefer `wget`, you can use the following command:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-installer/install.sh | sudo bash
+wget -qO- https://raw.githubusercontent.com/blstmo/blstmo-templates/refs/heads/main/docker-installer/install.sh | sudo bash
 ```
 
 ### 3. Manual Installation (Using Git)
