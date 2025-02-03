@@ -1,0 +1,44 @@
+name: Test Docker Installer Script
+
+on:
+  push:
+    paths:
+      - 'docker-installer/install.sh'
+  pull_request:
+    paths:
+      - 'docker-installer/install.sh'
+
+jobs:
+  test-script:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        container: [ubuntu:latest, debian:latest, centos:latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq docker.io
+
+      - name: Run Docker Installer Script in ${{ matrix.container }}
+        run: |
+          docker run --rm -d --name test-container ${{ matrix.container }} sleep infinity
+          docker cp https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-installer/install.sh test-container:/install.sh
+          docker exec test-container bash -c "
+            curl -fsSL https://raw.githubusercontent.com/blstmo/blstmo-templates/docker-installer/install.sh -o /install.sh &&
+            chmod +x /install.sh &&
+            sudo /install.sh
+          "
+
+      - name: Verify Docker and Docker Compose in ${{ matrix.container }}
+        run: |
+          docker exec test-container docker --version
+          docker exec test-container docker-compose --version
