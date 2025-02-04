@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 # Function to display messages with color.
@@ -80,13 +79,13 @@ install_package() {
     fi
 }
 
-# Install curl
+# Install curl if not present
 if ! command -v curl &> /dev/null; then
     log "${YELLOW}" "Installing curl..."
     install_package curl
 fi
 
-# Check if jq is installed, if not, install it.
+# Install jq if not present
 if ! command -v jq &> /dev/null; then
     log "${YELLOW}" "'jq' not found. Installing jq..."
     install_package jq
@@ -95,6 +94,16 @@ fi
 # Install Docker
 log "${YELLOW}" "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
+
+# --- AlmaLinux Workaround ---
+# If the OS is AlmaLinux, patch the get-docker.sh script to use CentOS settings.
+if grep -qi "AlmaLinux" /etc/os-release; then
+    log "${YELLOW}" "Detected AlmaLinux. Patching Docker installer script to use CentOS settings..."
+    # This sed command replaces the line that detects the distro.
+    sed -i 's/^\(lsb_dist=\).*/\1"centos"/' get-docker.sh
+fi
+# --- End Workaround ---
+
 sh get-docker.sh
 rm get-docker.sh
 
