@@ -39,63 +39,74 @@ fi
 
 display_header
 
+# Update the package index based on the detected package manager.
 log "${YELLOW}" "Updating package index..."
 if command -v apt-get &> /dev/null; then
     apt-get update -y
-elif command -v yum &> /dev/null; then
-    yum update -y
 elif command -v dnf &> /dev/null; then
     dnf update -y
+elif command -v yum &> /dev/null; then
+    yum update -y
+elif command -v pacman &> /dev/null; then
+    pacman -Syu --noconfirm
+elif command -v apk &> /dev/null; then
+    apk update
 elif command -v zypper &> /dev/null; then
     zypper refresh -y
 else
     log "${RED}" "Unsupported package manager. Please update your system manually."
     exit 1
 fi
-#Install Curl
-log "${YELLOW}" "Installing prerequisites..."
-if command -v apt-get &> /dev/null; then
-    apt-get install -y curl
-elif command -v yum &> /dev/null; then
-    yum install -y curl
-elif command -v dnf &> /dev/null; then
-    dnf install -y curl
-elif command -v zypper &> /dev/null; then
-    zypper install -y curl
-else
-    log "${RED}" "Failed to install prerequisites. Please install 'curl' manually."
-    exit 1
-fi
 
-# Check if jq is installed, if not, install it
-if ! command -v jq &> /dev/null; then
-    log "${YELLOW}" "'jq' not found. Installing jq..."
+# Install prerequisites (curl and jq)
+log "${YELLOW}" "Installing prerequisites..."
+install_package() {
+    package_name=$1
     if command -v apt-get &> /dev/null; then
-        apt-get install -y jq
-    elif command -v yum &> /dev/null; then
-        yum install -y jq
+        apt-get install -y "$package_name"
     elif command -v dnf &> /dev/null; then
-        dnf install -y jq
+        dnf install -y "$package_name"
+    elif command -v yum &> /dev/null; then
+        yum install -y "$package_name"
+    elif command -v pacman &> /dev/null; then
+        pacman -S --noconfirm "$package_name"
+    elif command -v apk &> /dev/null; then
+        apk add --no-cache "$package_name"
     elif command -v zypper &> /dev/null; then
-        zypper install -y jq
+        zypper install -y "$package_name"
     else
-        log "${RED}" "Failed to install jq. Please install it manually."
+        log "${RED}" "Package manager not supported for installing ${package_name}."
         exit 1
     fi
+}
+
+# Install curl
+if ! command -v curl &> /dev/null; then
+    log "${YELLOW}" "Installing curl..."
+    install_package curl
 fi
 
+# Check if jq is installed, if not, install it.
+if ! command -v jq &> /dev/null; then
+    log "${YELLOW}" "'jq' not found. Installing jq..."
+    install_package jq
+fi
+
+# Install Docker
 log "${YELLOW}" "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 rm get-docker.sh
 
+# Start and enable Docker service
 log "${YELLOW}" "Starting and enabling Docker service..."
 systemctl start docker
 systemctl enable docker
 
+# Install Docker Compose plugin
 log "${YELLOW}" "Installing Docker Compose plugin..."
 DOCKER_CONFIG=${DOCKER_CONFIG:-/usr/local/lib/docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
+mkdir -p "$DOCKER_CONFIG/cli-plugins"
 ARCH=$(uname -m)
 case $ARCH in
     x86_64) ARCH="x86_64" ;;
@@ -111,9 +122,10 @@ if [ -z "$LATEST_VERSION" ]; then
 fi
 
 # Download the latest Docker Compose binary
-curl -SL "https://github.com/docker/compose/releases/download/$LATEST_VERSION/docker-compose-linux-$ARCH" -o $DOCKER_CONFIG/cli-plugins/docker-compose
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+curl -SL "https://github.com/docker/compose/releases/download/$LATEST_VERSION/docker-compose-linux-$ARCH" -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
+chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
 
+# Verification of installations
 log "${YELLOW}" "Verifying Docker installation..."
 docker --version
 docker compose version
